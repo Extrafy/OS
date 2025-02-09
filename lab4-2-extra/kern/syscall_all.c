@@ -268,15 +268,11 @@ int sys_set_env_status(u_int envid, u_int status) {
 	try(envid2env(envid, &env, 1));
 	/* Step 3: Update 'env_sched_list' if the 'env_status' of 'env' is being changed. */
 	/* Exercise 4.14: Your code here. (3/3) */
-	if (status == ENV_RUNNABLE && env->env_status != ENV_RUNNABLE) {
- 		TAILQ_INSERT_TAIL(&env_sched_list, env, env_sched_link);
+	if(status == ENV_NOT_RUNNABLE && env->env_status != ENV_NOT_RUNNABLE){
+		TAILQ_REMOVE(&env_sched_list, env, env_sched_link);
 	}
-	else if (status == ENV_NOT_RUNNABLE && env->env_status != ENV_NOT_RUNNABLE) {
-    		TAILQ_REMOVE(&env_sched_list, env, env_sched_link);
-		if(env == curenv) {
-    		    	 env->env_status = status;
-       			 schedule(1);
-		}
+	else if(status == ENV_RUNNABLE && env->env_status != ENV_RUNNABLE){
+		TAILQ_INSERT_TAIL(&env_sched_list, env, env_sched_link);
 	}
 	/* Step 4: Set the 'env_status' of 'env'. */
 	env->env_status = status;
@@ -472,6 +468,17 @@ int sys_read_dev(u_int va, u_int pa, u_int len) {
 	return 0;
 }
 
+int sys_clone(void *func, void *child_stack) {
+	int *t = env -> env_pgdir+(1<<21)+4;
+	if(*t >=64) return -E_ACT_ENV_NUM_EXCEED;
+	struct Env *e;
+	env_clone(&e, env->env_id);
+	e->env_tf = env->env_tf;
+	e->env_status = ENV_RUNNABLE;
+	TAILQ_INSERT_HEAD(&env_sched_list, e, env_sched_link);
+
+}
+
 void *syscall_table[MAX_SYSNO] = {
     [SYS_putchar] = sys_putchar,
     [SYS_print_cons] = sys_print_cons,
@@ -491,6 +498,7 @@ void *syscall_table[MAX_SYSNO] = {
     [SYS_cgetc] = sys_cgetc,
     [SYS_write_dev] = sys_write_dev,
     [SYS_read_dev] = sys_read_dev,
+    [SYS_clone] = sys_clone,
 };
 
 /* Overview:
