@@ -16,6 +16,18 @@ static u_long freemem;
 
 struct Page_list page_free_list; /* Free list of physical pages */
 
+u_int page_filter(Pde *pgdir, u_int va_lower_limit, u_int va_upper_limit, u_int num){
+	int res = 0;
+	for(u_int i = va_lower_limit; i < va_upper_limit; i+=PAGE_SIZE){
+		struct Page* pp;
+		pp = page_lookup(pgdir, i, NULL);
+		if(pp == NULL) continue;
+		if(pp->pp_ref >= num) res++;
+	}
+//	printk("%d\n",res);
+	return res;
+}
+
 /* Overview:
  *   Use '_memsize' from bootloader to initialize 'memsize' and
  *   calculate the corresponding 'npage' value.
