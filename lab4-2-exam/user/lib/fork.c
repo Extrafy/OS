@@ -116,6 +116,7 @@ int fork(void) {
 	// correct value.
 	child = syscall_exofork();
 	if (child == 0) {
+		straced = 0;
 		env = envs + ENVX(syscall_getenvid());
 		return 0;
 	}

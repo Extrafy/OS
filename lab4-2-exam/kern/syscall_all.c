@@ -268,11 +268,15 @@ int sys_set_env_status(u_int envid, u_int status) {
 	try(envid2env(envid, &env, 1));
 	/* Step 3: Update 'env_sched_list' if the 'env_status' of 'env' is being changed. */
 	/* Exercise 4.14: Your code here. (3/3) */
-	if(status == ENV_NOT_RUNNABLE && env->env_status != ENV_NOT_RUNNABLE){
-		TAILQ_REMOVE(&env_sched_list, env, env_sched_link);
+	if (status == ENV_RUNNABLE && env->env_status != ENV_RUNNABLE) {
+ 		TAILQ_INSERT_TAIL(&env_sched_list, env, env_sched_link);
 	}
-	else if(status == ENV_RUNNABLE && env->env_status != ENV_RUNNABLE){
-		TAILQ_INSERT_TAIL(&env_sched_list, env, env_sched_link);
+	else if (status == ENV_NOT_RUNNABLE && env->env_status != ENV_NOT_RUNNABLE) {
+    		TAILQ_REMOVE(&env_sched_list, env, env_sched_link);
+		if(env == curenv) {
+    		    	 env->env_status = status;
+       			 schedule(1);
+		}
 	}
 	/* Step 4: Set the 'env_status' of 'env'. */
 	env->env_status = status;
@@ -468,41 +472,6 @@ int sys_read_dev(u_int va, u_int pa, u_int len) {
 	return 0;
 }
 
-int sems[15];
-int sems_valid[15] = {0};
-
-void sys_sem_open(int sem_id, int n) {
-	// Lab 4-1-Exam: Your code here. (6/9)
-	if(!sems_valid[sem_id]){
-		sems[sem_id] = n;
-		sems_valid[sem_id] = 1;
-	}
-}
-
-int sys_sem_wait(int sem_id) {
-	// Lab 4-1-Exam: Your code here. (7/9)
-	if(!sems_valid[sem_id]) return -E_SEM_NOT_OPEN;
-	else if(sems[sem_id] == 0) return -1;
-	else if(sems[sem_id] > 0) sems[sem_id]--;
-	return 0;
-}
-
-int sys_sem_post(int sem_id) {
-	// Lab 4-1-Exam: Your code here. (8/9)
-	if(!sems_valid[sem_id]) return -E_SEM_NOT_OPEN;
-	else sems[sem_id]++;
-	return 0;
-}
-
-int sys_sem_kill(int sem_id) {
-	// Lab 4-1-Exam: Your code here. (9/9)
-	if(!sems_valid[sem_id]) return -E_SEM_NOT_OPEN;
-        else {
-                 sems_valid[sem_id] = 0;
-                 return 0;
-         }
-}
-
 void *syscall_table[MAX_SYSNO] = {
     [SYS_putchar] = sys_putchar,
     [SYS_print_cons] = sys_print_cons,
@@ -522,10 +491,6 @@ void *syscall_table[MAX_SYSNO] = {
     [SYS_cgetc] = sys_cgetc,
     [SYS_write_dev] = sys_write_dev,
     [SYS_read_dev] = sys_read_dev,
-    [SYS_sem_open] = sys_sem_open,
-    [SYS_sem_wait] = sys_sem_wait,
-    [SYS_sem_post] = sys_sem_post,
-    [SYS_sem_kill] = sys_sem_kill,
 };
 
 /* Overview:
