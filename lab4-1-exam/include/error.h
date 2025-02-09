@@ -2,7 +2,7 @@
 #define _ERROR_H_
 
 // OS error codes.
-
+#define E_SEM_NOT_OPEN 14
 // Unspecified or unknown problem
 #define E_UNSPECIFIED 1
 

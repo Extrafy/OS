@@ -118,7 +118,14 @@ int read_map(int fd, u_int offset, void **blk);
 int remove(const char *path);
 int ftruncate(int fd, u_int size);
 int sync(void);
-
+void sem_open(int sem_id, int n);
+int sem_wait(int sem_id);
+int sem_post(int sem_id);
+int sem_kill(int sem_id);
+void syscall_sem_open(int sem_id, int n);
+int syscall_sem_wait(int sem_id);
+int syscall_sem_post(int sem_id);
+int syscall_sem_kill(int sem_id);
 #define user_assert(x)                                                                             \
 	do {                                                                                       \
 		if (!(x))                                                                          \
