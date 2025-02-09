@@ -5,7 +5,7 @@
 #include <queue.h>
 #include <trap.h>
 #include <types.h>
-
+#include <msg.h>
 #define LOG2NENV 10
 #define NENV (1 << LOG2NENV)
 #define ENVX(envid) ((envid) & (NENV - 1))
@@ -36,6 +36,11 @@ struct Env {
 
 	// Lab 4 fault handling
 	u_int env_user_tlb_mod_entry; // userspace TLB Mod handler
+
+	struct Msg_list env_msg_list; // 进程收到但尚未处理的消息控制块
+	u_int env_msg_value;          // 用于向用户态返回 msg_value
+	u_int env_msg_from;           // 用于向用户态返回 msg_from
+	u_int env_msg_perm;           // 用于向用户态返回 msg_perm
 
 	// Lab 6 scheduler counts
 	u_int env_runs; // number of times we've been env_run'ed
