@@ -17,7 +17,7 @@
 /* ide.c */
 void ide_read(u_int diskno, u_int secno, void *dst, u_int nsecs);
 void ide_write(u_int diskno, u_int secno, void *src, u_int nsecs);
-
+int directory_copy(char *src_path, char *dst_path);
 /* fs.c */
 int file_open(char *path, struct File **pfile);
 int file_create(char *path, struct File **file);

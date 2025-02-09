@@ -7,6 +7,7 @@
 // Definitions for requests from clients to file system
 
 enum {
+	FSREQ_COPY,
 	FSREQ_OPEN,
 	FSREQ_MAP,
 	FSREQ_SET_SIZE,
@@ -15,6 +16,11 @@ enum {
 	FSREQ_REMOVE,
 	FSREQ_SYNC,
 	MAX_FSREQNO,
+};
+
+struct Fsreq_copy {
+   char req_src_path[MAXPATHLEN];
+   char req_dst_path[MAXPATHLEN];
 };
 
 struct Fsreq_open {

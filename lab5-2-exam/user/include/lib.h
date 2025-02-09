@@ -12,7 +12,8 @@
 #define vpd ((const volatile Pde *)(UVPT + (PDX(UVPT) << PGSHIFT)))
 #define envs ((const volatile struct Env *)UENVS)
 #define pages ((const volatile struct Page *)UPAGES)
-
+int copy(const char *src_path, const char *dst_path);
+int fsipc_copy(const char *,const char *);
 // libos
 void exit(void) __attribute__((noreturn));
 

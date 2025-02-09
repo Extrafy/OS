@@ -3,7 +3,7 @@
 static char *msg = "This is the NEW message of the day!\n";
 static char *diff_msg = "This is a different message of the day!\n";
 
-int main(){
+int main() {
 	int r;
 	int fdnum;
 	char buf[512];
@@ -14,6 +14,7 @@ int main(){
 	}
 	fdnum = r;
 	debugf("open is good\n");
+
 	if ((n = read(fdnum, buf, 511)) < 0) {
 		user_panic("read /newmotd: %d", r);
 	}
