@@ -30,24 +30,3 @@ void print_tf(struct Trapframe *tf) {
 	printk("CP0.Cause = %08x\n", tf->cp0_cause);
 	printk("CP0.EPC   = %08x\n", tf->cp0_epc);
 }
-
-// kern/printk.c
-// 帮助函数，用于从控制台获取长度为 len 的字符，并写入 buf 中。
-void inputk(void *data, char *buf, size_t len) {
-	for (int i = 0; i < len; i++) {
-		while ((buf[i] = scancharc()) == '\0') {
-		}
-		if (buf[i] == '\r') {
-			buf[i] = '\n';
-		}
-	}
-}
-
-int scanf(const char *fmt, ...) {
-	// Lab 1-Extra: Your code here. (1/5)
-	va_list ap;
-	va_start(ap, fmt);
-	int res = vscanfmt(inputk, NULL, fmt, ap);
-	va_end(ap);
-	return res;
-}

@@ -91,7 +91,7 @@ static void printk_3_check(void) {
 	printk("%d and %b\n", c, b);
 	printk("%d and %u\n", c, b);
 }
-
+ 
 extern char bss_end[];
 
 void mips_init(u_int argc, char **argv, char **penv, u_int ram_low_size) {
