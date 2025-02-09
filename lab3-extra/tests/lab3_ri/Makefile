@@ -11,7 +11,7 @@ INCLUDES       := -I$(root_dir)/include
 %.b.c: %.b
 	$(tools_dir)/bintoc -f $< -o $@ -p test
 
-%.b: %.o
+%.b: entry.o %.o
 	$(LD) -o $@ $(LDFLAGS) -T $(user_dir)/user.lds $^
 
 %.o: %.c
@@ -22,7 +22,7 @@ INCLUDES       := -I$(root_dir)/include
 
 .PHONY: all clean
 
-all: loop.x
+all: ri.x
 
 clean:
 	rm -rf *.o *~ *.x *.b *.b.c
