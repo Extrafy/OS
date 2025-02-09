@@ -16,18 +16,6 @@ static u_long freemem;
 
 struct Page_list page_free_list; /* Free list of physical pages */
 
-u_int page_filter(Pde *pgdir, u_int va_lower_limit, u_int va_upper_limit, u_int num){
-	int res = 0;
-	for(u_int i = va_lower_limit; i < va_upper_limit; i+=PAGE_SIZE){
-		struct Page* pp;
-		pp = page_lookup(pgdir, i, NULL);
-		if(pp == NULL) continue;
-		if(pp->pp_ref >= num) res++;
-	}
-//	printk("%d\n",res);
-	return res;
-}
-
 /* Overview:
  *   Use '_memsize' from bootloader to initialize 'memsize' and
  *   calculate the corresponding 'npage' value.
@@ -518,4 +506,75 @@ void page_check(void) {
 	page_free(pa2page(PADDR(boot_pgdir)));
 
 	printk("page_check() succeeded!\n");
+}
+
+#include <buddy.h>
+
+struct Page_list buddy_free_list[2];
+
+void buddy_init() {
+	LIST_INIT(&buddy_free_list[0]);
+	LIST_INIT(&buddy_free_list[1]);
+	for (int i = BUDDY_PAGE_BASE; i < BUDDY_PAGE_END; i += PAGE_SIZE) {
+		struct Page *pp = pa2page(i);
+		LIST_REMOVE(pp, pp_link);
+	}
+	for (int i = BUDDY_PAGE_BASE; i < BUDDY_PAGE_END; i += 2 * PAGE_SIZE) {
+		struct Page *pp = pa2page(i);
+		LIST_INSERT_HEAD(&buddy_free_list[1], pp, pp_link);
+	}
+}
+
+int buddy_alloc(u_int size, struct Page **new) {
+	/* Your Code Here (1/2) */
+	int k=0;
+	for(k=0 ; (1<<k) < size ; k++);
+	u_int mysize = (1<<k);
+	if(mysize < (1<<12)){
+
+	}
+	else if(mysize == (1<<12)){
+		if(!LIST_EMPTY(&buddy_free_list[0])){
+			struct Page *pp = LIST_FIRST(&buddy_free_list[0]);
+			LIST_REMOVE(pp, pp_link);
+			*new = pp;
+			pp->pp_ref++;
+			return mysize/(1<<12);
+		}
+		else{
+			if(LIST_EMPTY(&buddy_free_list[1])) return -E_NO_MEM;
+			struct Page *pp = LIST_FIRST(&buddy_free_list[1]);
+			LIST_REMOVE(pp, pp_link);
+			*new = pp;
+			pp->pp_ref++;
+			pp = pa2page(page2pa(pp)+(1<<12));
+			LIST_INSERT_HEAD(&buddy_free_list[0], pp, pp_link);
+			return mysize/(1<<12);
+		}
+	}
+	else{
+		if(!LIST_EMPTY(&buddy_free_list[1])){
+			struct Page *pp = LIST_FIRST(&buddy_free_list[1]);
+                        LIST_REMOVE(pp, pp_link);
+                        *new = pp;
+			pp->pp_ref++;
+                        return mysize/(1<<12);
+		}
+		else return -E_NO_MEM;
+	}
+}
+
+void buddy_free(struct Page *pp, int npp) {
+	/* Your Code Here (2/2) */
+	int size = npp * (1<<12);
+	struct Page *ppp = pa2page(page2pa(pp)+(1<<12));
+	if(size == (1<<12) && ppp == NULL){
+		LIST_INSERT_HEAD(&buddy_free_list[0], pp, pp_link);
+	}
+	if(size == (1<<12) && (ppp->pp_ref==0)){
+		LIST_REMOVE(ppp, pp_link);
+		LIST_INSERT_HEAD(&buddy_free_list[1], ppp, pp_link);
+		LIST_INSERT_HEAD(&buddy_free_list[1], pp, pp_link);
+	}
+	else LIST_INSERT_HEAD(&buddy_free_list[1], pp, pp_link);
 }
