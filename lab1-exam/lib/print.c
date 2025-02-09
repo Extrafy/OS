@@ -9,6 +9,9 @@ void vprintfmt(fmt_callback_t out, void *data, const char *fmt, va_list ap) {
 	char c;
 	const char *s;
 	long num;
+	long a;
+	long b;
+	long z;
 
 	int width;
 	int long_flag; // output is long (rather than int)
@@ -140,7 +143,39 @@ void vprintfmt(fmt_callback_t out, void *data, const char *fmt, va_list ap) {
 			s = (char *)va_arg(ap, char *);
 			print_str(out, data, s, width, ladjust);
 			break;
-
+		case 'P':
+			if(long_flag){
+				a = va_arg(ap, long int);
+				b = va_arg(ap, long int);
+				z = (a+b) * (a-b);
+				z = z < 0 ? -z : z;
+			} else{
+				a = va_arg(ap, int);
+				b = va_arg(ap, int);
+				z = (a+b) * (a-b);
+				z = z < 0 ? -z : z;
+			}
+			print_char(out, data, '(', 1, 0);
+			int nega_flag = 0, negb_flag = 0, negz_flag = 0;
+			if(a < 0){
+				nega_flag = 1;
+				a = -a;
+			}
+			if(b < 0){
+				negb_flag = 1;
+				b = -b;
+			}
+			if(z < 0){
+				negz_flag = 1;
+				z = -z;
+			}
+			print_num(out, data, a, 10, nega_flag, width, ladjust, padc, 0);
+			print_char(out, data, ',', 1, 0);
+			print_num(out, data, b, 10, negb_flag, width, ladjust, padc, 0);
+			print_char(out, data, ',', 1, 0);
+			print_num(out, data, z, 10, negz_flag, width, ladjust, padc, 0);
+			print_char(out, data, ')', 1, 0);
+			break;
 		case '\0':
 			fmt--;
 			break;
@@ -151,98 +186,6 @@ void vprintfmt(fmt_callback_t out, void *data, const char *fmt, va_list ap) {
 		}
 		fmt++;
 	}
-}
-
-// lib/print.c
-int vscanfmt(scan_callback_t in, void *data, const char *fmt, va_list ap) {
-	int *ip;
-	char *cp;
-	char ch;
-	int base, num, neg, ret = 0;
-
-	while (*fmt) {
-		if (*fmt == '%') {
-			ret++;
-			fmt++; // 跳过 '%'
-			do {
-				in(data, &ch, 1);
-			} while (ch == ' ' || ch == '\t' || ch == '\n'); // 跳过空白符
-			// 注意，此时 ch 为第一个有效输入字符
-			int flag = 0;
-			num = 0, neg = 0;
-			switch (*fmt) {
-			case 'd': // 十进制
-				// Lab 1-Extra: Your code here. (2/5)
-				flag = 0;
-				if(ch == '-') neg = 1;
-				if(!neg){
-					 num = ch - '0';
-					 if(ch >= '1' && ch <= '9') flag = 1;
-				}
-				ip = va_arg(ap, int*);
-				while(1){
-					in(data, &ch, 1);
-					if(ch == '0' && flag == 0) continue;
-					else if(ch < '0' || ch > '9') break;
-					else if((ch >= '1' && ch <= '9') || (ch == '0' && flag == 1)){
-						flag = 1;
-						num = num*10 + (ch - '0');
-					}
-				}
-				if(neg) num = -num;
-				*ip = num;
-				break;
-			case 'x': // 十六进制
-				// Lab 1-Extra: Your code here. (3/5)
-				flag = 0;
-				if(ch == '-') neg = 1;
-				if(!neg){
-					if(ch >= '1' && ch <= '9'){
-						num = ch - '0';
-						flag = 1;
-					}
-					else if(ch >= 'a' && ch <= 'f'){
-						num = ch - 'a' + 10;
-						flag = 1;
-					}
-				}
-				ip = va_arg(ap, int*);
-				while(1){
-					in(data,&ch,1);
-					if(ch == '0' && flag == 0) continue;
-					else if((ch >= '1' && ch <= '9') || (ch == '0' && flag == 1)){
-						flag = 1;
-						num = num *16 + (ch - '0');
-					}
-					else if(ch >= 'a' && ch <= 'f'){
-						flag = 1;
-						num = num * 16 +(ch - 'a' + 10);
-					}
-					else break;
-				}
-				if(neg) num = -num;
-				*ip = num;
-				break;
-			case 'c':
-				// Lab 1-Extra: Your code here. (4/5)
-				cp = va_arg(ap, char*);
-				*cp = ch;
-				break;
-			case 's':
-				// Lab 1-Extra: Your code here. (5/5)
-				cp = va_arg(ap, char*);
-				do{
-					*cp = ch;
-					cp++;
-					in(data, &ch, 1);
-				} while (ch != ' ' && ch != '\t' && ch != '\n');
-				*cp = '\0';
-				break;
-			}
-			fmt++;
-		}
-	}
-	return ret;
 }
 
 /* --------------- local help functions --------------------- */
