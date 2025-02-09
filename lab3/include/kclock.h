@@ -17,6 +17,9 @@
 	 *
 	 */
 	/* Exercise 3.11: Your code here. */
+        mtc0    t0, CP0_COMPARE          // Move the value in t0 to CP0_COMPARE register
+        li      t0, 0                    // Load 0 into t0 (reset value for CP0_COUNT)
+        mtc0    t0, CP0_COUNT            // Move the value in t0 to CP0_COUNT register
 
 .endm
 // clang-format on
