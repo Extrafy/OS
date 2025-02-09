@@ -1,8 +1,0 @@
-.vscode
-.idea
-*.o
-*.swp
-*.objdump
-*~
-tags
-hello
